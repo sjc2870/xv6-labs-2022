@@ -3,14 +3,17 @@
 #include "kernel/types.h"
 #include "kernel/riscv.h"
 #include "user/user.h"
+#include "kernel/memlayout.h"
 
 void ugetpid_test();
+void uputpid_test();
 void pgaccess_test();
 
 int
 main(int argc, char *argv[])
 {
   ugetpid_test();
+  // uputpid_test();
   pgaccess_test();
   printf("pgtbltest: all tests succeeded\n");
   exit(0);
@@ -23,6 +26,19 @@ err(char *why)
 {
   printf("pgtbltest: %s failed: %s, pid=%d\n", testname, why, getpid());
   exit(1);
+}
+
+void uputpid_test()
+{
+  int ret = fork();
+  if (ret != 0) {
+    wait(&ret);
+  } else {
+    struct usyscall *u = (struct usyscall *)USYSCALL;
+    printf("pid is %d:%d\n", getpid(), ugetpid());
+    // expect "unexpected scause"
+    u->pid = 100;
+  }
 }
 
 void

@@ -41,5 +41,6 @@ main()
     plicinithart();   // ask PLIC for device interrupts
   }
 
-  scheduler();        
+  // will jump to forkret() via swtch(), and forkret() was assigned in userinit()->allocproc()
+  scheduler();
 }
