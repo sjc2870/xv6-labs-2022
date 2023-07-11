@@ -1,0 +1,7 @@
+Speed up system calls:
+	1. SYS_sysinfo could be made faster using this shared page. It needs a offset within this page, and user get the shared page, and then plus offset, read struct to user space. Kernel get the shared page, plus offset, write struct to this page.
+Print a page table:
+	1. Page 0 contains a valid pte which is a physical page number, and in that page, contains a valid pte.
+	2. page 2 doesn't have any valid pte.
+	3. User can't read/write the memory mapped by page 1. Because page 1 was belong to kernel, user cannot read or write.
+	4. todo

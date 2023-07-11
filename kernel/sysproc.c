@@ -75,6 +75,20 @@ int
 sys_pgaccess(void)
 {
   // lab pgtbl: your code here.
+  uint64 va;
+  int nr_pages;
+  uint64 uaddr;
+  uint32 kbit_map;
+
+  argaddr(0, &va);
+  argint(1, &nr_pages);
+  argaddr(2, &uaddr);
+
+  kbit_map = pgaccess(myproc()->pagetable, (void*)va, nr_pages);
+  printf("kernel: ret is 0x%x\n", kbit_map);
+
+  copyout(myproc()->pagetable, uaddr, (char*)&kbit_map, sizeof(kbit_map));
+
   return 0;
 }
 #endif

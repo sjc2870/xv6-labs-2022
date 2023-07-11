@@ -68,7 +68,7 @@ void
 pgaccess_test()
 {
   char *buf;
-  unsigned int abits;
+  unsigned int abits = 0;
   printf("pgaccess_test starting\n");
   testname = "pgaccess_test";
   buf = malloc(32 * PGSIZE);
@@ -79,6 +79,7 @@ pgaccess_test()
   buf[PGSIZE * 30] += 1;
   if (pgaccess(buf, 32, &abits) < 0)
     err("pgaccess failed");
+  printf("map bits is 0x%x\n", abits);
   if (abits != ((1 << 1) | (1 << 2) | (1 << 30)))
     err("incorrect access bits set");
   free(buf);

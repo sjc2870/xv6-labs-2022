@@ -45,7 +45,7 @@ kvmmake(void)
 
   // allocate and map a kernel stack for each process.
   proc_mapstacks(kpgtbl);
-  
+
   return kpgtbl;
 }
 
@@ -147,7 +147,7 @@ mappages(pagetable_t pagetable, uint64 va, uint64 size, uint64 pa, int perm)
 
   if(size == 0)
     panic("mappages: size");
-  
+
   a = PGROUNDDOWN(va);
   last = PGROUNDDOWN(va + size - 1);
   for(;;){
@@ -338,11 +338,54 @@ void
 uvmclear(pagetable_t pagetable, uint64 va)
 {
   pte_t *pte;
-  
+
   pte = walk(pagetable, va, 0);
   if(pte == 0)
     panic("uvmclear");
   *pte &= ~PTE_U;
+}
+
+void vmprint(pagetable_t pgtable, int level)
+{
+  int i = 0, j = 0;
+  pte_t pte;
+
+
+  for (i = 0; i < (PGSIZE/sizeof(void*)); i++) {
+    pte = pgtable[i];
+    if ((pte & PTE_V)) {
+      for (j = 0; j < level; ++j)
+        printf(".. ");
+      if ((pte & (PTE_R|PTE_W|PTE_X)) == 0) {
+        printf("..%d: pte %p pa %p\n", i, pte, (pte >> 10) << 12);
+        vmprint((pagetable_t)((pte >> 10) << 12), level + 1);
+      } else {
+        printf("..%d: pte %p pa %p\n", i, pte, (pte >> 10) << 12);
+      }
+    }
+  }
+}
+
+uint pgaccess(pagetable_t pagetable, void* va, int nr_pages)
+{
+  pte_t *pte;
+  uint64 addr = (uint64)va;
+  uint64 end = addr + nr_pages * PGSIZE;
+  uint bitmap = 0, i = 0;
+
+  for (; addr < end; addr += PGSIZE, i++) {
+    pte = walk(pagetable, addr, 0);
+    if (pte == 0)
+      panic("pgaccess");
+    if ((*pte & PTE_A)) {
+      *pte &= ~PTE_A;
+      __sync_synchronize();
+      bitmap |= (1 << i);
+    }
+  }
+
+printf("i is %d\n", i);
+  return bitmap;
 }
 
 // Copy from kernel to user.
